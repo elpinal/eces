@@ -21,7 +21,7 @@ fun load nil = raise Fatal "load: need 1 or more arguments"
   | load _ = raise Fatal "load: not implemented yet"
 
 fun main (prog, args) =
-  (let
+  let
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
 	| getCmd ("load" :: _) = load
@@ -31,7 +31,7 @@ fun main (prog, args) =
   in
       cmd (tl args);
       OS.Process.success
-  end)
+  end
   handle Fatal msg => (println msg; OS.Process.failure)
        | Fail => OS.Process.failure
 
