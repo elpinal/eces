@@ -22,12 +22,12 @@ fun load nil = raise Fatal "load: need 1 or more arguments"
 
 fun main (prog, args) =
   (let
-      fun parseArgs nil = (usage(); raise NoArgs)
-	| parseArgs ("help" :: _) = usage
-	| parseArgs ("load" :: _) = load
-	| parseArgs (name :: _) = raise Fatal ("unknown command: " ^ name)
+      fun getCmd nil = (usage (); raise NoArgs)
+	| getCmd ("help" :: _) = usage
+	| getCmd ("load" :: _) = load
+	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
-      val cmd = parseArgs args handle NoArgs => raise Fail
+      val cmd = getCmd args handle NoArgs => raise Fail
   in
       cmd (tl args);
       OS.Process.success
