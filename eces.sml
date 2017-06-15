@@ -37,4 +37,4 @@ fun main (prog, args) =
 
 end
 
-val _ = Eces.main (CommandLine.name(), CommandLine.arguments())
+val _ = OS.Process.exit (Eces.main (CommandLine.name(), CommandLine.arguments()))
