@@ -7,21 +7,21 @@ exception NoArgs
 
 fun println s = print (s ^ "\n");
 
+fun usage _ = app println
+		  [ "usage:",
+		    "\teces command arguments...",
+		    "",
+		    "commands:",
+		    "",
+		    "\tload",
+		    ""
+		  ]
+		  
 fun load nil = raise Fatal "load: need 1 or more arguments"
   | load _ = raise Fatal "load: not implemented yet"
 
 fun main (prog, args) =
   (let
-      fun usage _ = app println
-			[ "usage:",
-			  "\t" ^ prog ^ " command arguments...",
-			  "",
-			  "commands:",
-			  "",
-			  "\tload",
-			  ""
-			]
-			
       fun parseArgs nil = (usage(); raise NoArgs)
 	| parseArgs ("help" :: _) = usage
 	| parseArgs ("load" :: _) = load
