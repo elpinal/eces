@@ -1,1 +1,5 @@
 /eces
+
+.omakedb
+.omakedb.lock
+*.omc
