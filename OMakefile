@@ -22,7 +22,7 @@
 # Phony targets are scoped, so you probably want to declare them first.
 #
 
-# .PHONY: all install clean
+.PHONY: install
 
 ########################################################################
 # Subdirectories.
@@ -34,7 +34,14 @@
 
 SML = mlton
 
+PREFIX = /usr/local/bin
+
+DefineCommandVars()
+
 eces: eces.sml
 	$(SML) $<
+
+install: eces
+	cp eces $(PREFIX)
 
 .DEFAULT: eces
