@@ -13,7 +13,8 @@ fun usage _ = app println
 		    "",
 		    "commands:",
 		    "",
-		    "\tload",
+		    "\tload    fetch repository of .emacs.d and place it in home directory",
+		    "\thelp    print this help",
 		    ""
 		  ]
 
