@@ -20,7 +20,7 @@ fun usage _ = app println
 fun load nil = raise Fatal "load: need 1 or more arguments"
   | load _ = raise Fatal "load: not implemented yet"
 
-fun main (prog, args) =
+fun main args =
   let
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
@@ -37,4 +37,4 @@ fun main (prog, args) =
 
 end
 
-val _ = OS.Process.exit (Eces.main (CommandLine.name(), CommandLine.arguments()))
+val _ = OS.Process.exit (Eces.main (CommandLine.arguments ()))
