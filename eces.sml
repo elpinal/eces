@@ -8,7 +8,9 @@ exception NoArgs
 fun println s = print (s ^ "\n");
 
 fun usage _ = app println
-		  [ "usage:",
+		  [ "Eces is a tool for switching settings of Emacs.",
+		    "",
+		    "usage:",
 		    "\teces command arguments...",
 		    "",
 		    "commands:",
