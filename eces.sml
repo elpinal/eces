@@ -138,7 +138,7 @@ fun listFiles dir =
 fun printItem file =
   let
       val current = Path.concat root file = (OS.FileSys.readLink $ Path.concat homeDir ".emacs.d")
-			       handle e => raise Fatal ("checking " ^ file ^ ": " ^ exnMessage e)
+		    handle e => raise Fatal ("checking " ^ file ^ ": " ^ exnMessage e)
   in
       if current then
 	  println $ "* " ^ file
