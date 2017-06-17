@@ -135,7 +135,18 @@ fun listFiles dir =
   end
   handle e => []
 
-fun list nil = app println o rev o listFiles $ root
+fun printItem file =
+  let
+      val current = Path.concat root file = (OS.FileSys.readLink $ Path.concat homeDir ".emacs.d")
+			       handle e => raise Fatal ("checking " ^ file ^ ": " ^ exnMessage e)
+  in
+      if current then
+	  println $ "* " ^ file
+      else
+	  println $ "  " ^ file
+  end
+
+fun list nil = app printItem o rev o listFiles $ root
   | list _ = raise Fatal "no arguments needed"
 
 fun main args =
