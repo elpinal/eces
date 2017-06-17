@@ -74,9 +74,9 @@ fun install (name :: uri :: nil) = install' name uri
 fun update (name :: nil) =
   let
       val dir = (OS.Path.concat (root, name))
-      val existence = exist dir handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
+      val existDir = exist dir handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
   in
-      if existence then
+      if existDir then
 	  exec "git" ["-C", dir, "pull"]
       else
 	  raise Fatal ("no directory: " ^ dir)
