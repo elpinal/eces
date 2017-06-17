@@ -118,10 +118,10 @@ fun main args =
   let
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
-	| getCmd ("update" ::_) = update
 	| getCmd ("install" :: _) = install
 	| getCmd ("list" :: _) = list
 	| getCmd ("switch" :: _) = switch
+	| getCmd ("update" ::_) = update
 	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
       val cmd = getCmd args handle NoArgs => raise Fail
