@@ -17,6 +17,7 @@ fun usage _ = app println
 		    "",
 		    "\thelp       print this help",
 		    "\tinstall    fetch repository of .emacs.d",
+		    "\tlist       list repositories",
 		    "\tswitch     switch .emacs.d",
 		    "\tupdate     update .emacs.d",
 		    ""
@@ -94,12 +95,32 @@ fun switch (name :: nil) =
   end
   | switch _ = raise Fatal "need just 1 argument"
 
+fun listFiles' stream list =
+  case OS.FileSys.readDir stream of
+      NONE => list
+    | SOME name => listFiles' stream (name :: list)
+
+fun listFiles dir =
+  let
+      val stream = OS.FileSys.openDir dir
+
+      val list = listFiles' stream []
+  in
+      OS.FileSys.closeDir stream;
+      list
+  end
+  handle e as OS.SysErr (_, _) => []
+
+fun list nil = app println ((rev o listFiles) root)
+  | list _ = raise Fatal "no arguments needed"
+
 fun main args =
   let
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
 	| getCmd ("update" ::_) = update
 	| getCmd ("install" :: _) = install
+	| getCmd ("list" :: _) = list
 	| getCmd ("switch" :: _) = switch
 	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
