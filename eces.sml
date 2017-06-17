@@ -15,10 +15,10 @@ fun usage _ = app println
 		    "",
 		    "commands:",
 		    "",
-		    "\tinstall fetch repository of .emacs.d",
-		    "\tswitch  switch .emacs.d",
-		    "\tupdate  update .emacs.d",
-		    "\thelp    print this help",
+		    "\thelp       print this help",
+		    "\tinstall    fetch repository of .emacs.d",
+		    "\tswitch     switch .emacs.d",
+		    "\tupdate     update .emacs.d",
 		    ""
 		  ]
 
