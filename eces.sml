@@ -3,6 +3,16 @@ fun f $ x = f x
 
 infixr 9 o
 
+structure Path = struct
+
+fun curry f = fn x => fn y => f (x, y)
+
+val concat = curry OS.Path.concat
+
+fun join dirs = foldl OS.Path.concat "" dirs
+
+end
+
 structure Eces = struct
 
 exception Fatal of string
@@ -31,7 +41,7 @@ fun usage _ = app println
 val homeDir = valOf $ Posix.ProcEnv.getenv "HOME"
 	      handle Option.Option => raise Fatal "could not get home directory"
 
-val root = OS.Path.concat (homeDir, ".eces")
+val root = Path.concat homeDir ".eces"
 	   handle OS.Path.Path => raise Fatal ("concat " ^ homeDir ^ " " ^ ".eces")
 
 fun exec cmd args =
@@ -43,7 +53,7 @@ fun exec cmd args =
 
 fun fetch name uri =
   let
-      val target = OS.Path.concat (root, name)
+      val target = Path.concat root name
 		   handle OS.Path.Path => raise Fatal ("concat " ^ root ^ " " ^ name)
   in
       ignore $ exec "git" ["clone", uri, target]
@@ -70,7 +80,7 @@ fun ensureRemoved dir = if not $ exist dir then () else
 
 fun install' name uri =
   let
-      val dir = OS.Path.concat (root, name)
+      val dir = Path.concat root name
 		handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
   in
       if not $ isInstalled dir then
@@ -84,7 +94,7 @@ fun install (name :: uri :: nil) = install' name uri
 
 fun update (name :: nil) =
   let
-      val dir = OS.Path.concat (root, name)
+      val dir = Path.concat root name
       val existDir = exist dir
 		     handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
   in
@@ -97,10 +107,10 @@ fun update (name :: nil) =
 
 fun switch (name :: nil) =
   let
-      val dir = OS.Path.concat (root, name)
+      val dir = Path.concat root name
 		handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
 
-      val target = OS.Path.concat (homeDir, ".emacs.d")
+      val target = Path.concat homeDir ".emacs.d"
 		   handle OS.Path.Path => raise Fatal ("fatal: concat " ^ homeDir ^ " " ^ ".emacs.d")
 
       val () = ensureRemoved target
