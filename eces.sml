@@ -86,11 +86,11 @@ fun update (name :: nil) =
 fun switch (name :: nil) =
   let
       val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
-									 
+
       val target = OS.Path.concat (homeDir, ".emacs.d") handle OS.Path.Path => raise Fatal ("fatal: concat " ^ homeDir ^ " " ^ ".emacs.d")
 
       val () = ensureRemoved target
-  in 
+  in
       Posix.FileSys.symlink {old = dir, new = target}
   end
   | switch _ = raise Fatal "need just 1 argument"
