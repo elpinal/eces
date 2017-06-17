@@ -1,3 +1,8 @@
+infixr 0 $
+fun f $ x = f x
+
+infixr 9 o
+
 structure Eces = struct
 
 exception Fatal of string
@@ -5,7 +10,7 @@ exception Fail
 
 exception NoArgs
 
-fun println s = print (s ^ "\n");
+fun println s = print $ s ^ "\n"
 
 fun usage _ = app println
 		  [ "Eces is a tool for switching settings of Emacs.",
@@ -23,33 +28,33 @@ fun usage _ = app println
 		    ""
 		  ]
 
-val homeDir = valOf (Posix.ProcEnv.getenv "HOME") handle Option.Option => raise Fatal "could not get home directory"
+val homeDir = valOf $ Posix.ProcEnv.getenv "HOME" handle Option.Option => raise Fatal "could not get home directory"
 
 val root = OS.Path.concat (homeDir, ".eces") handle OS.Path.Path => raise Fatal ("concat " ^ homeDir ^ " " ^ ".eces")
 
 fun exec cmd args =
   case (Posix.Process.fork () handle e as OS.SysErr (_, _) => raise Fatal ("exec " ^ cmd ^ " " ^ (foldl (fn (x, acc) => acc ^ x ^ " ") "" args) ^ exnMessage e)) of
-      NONE => ignore (Posix.Process.execp (cmd, (cmd::args)))
-   |  SOME pid => ignore (Posix.Process.waitpid (Posix.Process.W_CHILD pid, nil))
+      NONE => ignore $ Posix.Process.execp (cmd, cmd::args)
+   |  SOME pid => ignore $ Posix.Process.waitpid (Posix.Process.W_CHILD pid, nil)
 
 fun fetch name uri =
   let
       val target = OS.Path.concat (root, name)
 		   handle OS.Path.Path => raise Fatal ("concat " ^ root ^ " " ^ name)
   in
-      ignore (exec "git" ["clone", uri, target])
+      ignore $ exec "git" ["clone", uri, target]
       handle e as OS.SysErr (msg, err) => raise Fatal ("fetch " ^ uri ^ " " ^ target ^ ": " ^ (exnMessage e))
   end
 
 fun exist file = Posix.FileSys.access (file, []);
 
 fun isInstalled dir =
-  if not (exist dir) then
+  if not $ exist dir then
       false
   else
       OS.FileSys.isDir dir handle e as OS.SysErr (msg, err) => raise Fatal ("checking installed (" ^ dir ^ "): " ^ (exnMessage e))
 
-fun ensureRemoved dir = if not (exist dir) then () else
+fun ensureRemoved dir = if not $ exist dir then () else
 			let
 			    val _ = if Posix.FileSys.access (dir, [Posix.FileSys.A_WRITE]) then () else raise Fatal (dir ^ " is not writable")
 			    val _ = if OS.FileSys.isDir dir then () else raise Fatal (dir ^ " is not directory")
@@ -62,7 +67,7 @@ fun install' name uri =
   let
       val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
   in
-      if not (isInstalled dir) then
+      if not $ isInstalled dir then
 	  fetch name uri
       else
 	  ()
@@ -73,7 +78,7 @@ fun install (name :: uri :: nil) = install' name uri
 
 fun update (name :: nil) =
   let
-      val dir = (OS.Path.concat (root, name))
+      val dir = OS.Path.concat (root, name)
       val existDir = exist dir handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
   in
       if existDir then
@@ -98,7 +103,7 @@ fun switch (name :: nil) =
 fun listFiles' stream list =
   case OS.FileSys.readDir stream of
       NONE => list
-    | SOME name => listFiles' stream (name :: list)
+    | SOME name => listFiles' stream $ name :: list
 
 fun listFiles dir =
   let
@@ -111,7 +116,7 @@ fun listFiles dir =
   end
   handle e as OS.SysErr (_, _) => []
 
-fun list nil = app println ((rev o listFiles) root)
+fun list nil = app println o rev o listFiles $ root
   | list _ = raise Fatal "no arguments needed"
 
 fun main args =
@@ -126,7 +131,7 @@ fun main args =
 
       val cmd = getCmd args handle NoArgs => raise Fail
   in
-      cmd (tl args);
+      cmd $ tl args;
       OS.Process.success
   end
   handle Fatal msg => (println msg; OS.Process.failure)
@@ -134,4 +139,4 @@ fun main args =
 
 end
 
-val _ = OS.Process.exit (Eces.main (CommandLine.arguments ()))
+val _ = OS.Process.exit o Eces.main $ CommandLine.arguments ()
