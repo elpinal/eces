@@ -15,7 +15,7 @@ fun usage _ = app println
 		    "",
 		    "commands:",
 		    "",
-		    "\tload    fetch repository of .emacs.d and place it in home directory",
+		    "\tinstall fetch repository of .emacs.d and place it in home directory",
 		    "\tupdate  update .emacs.d",
 		    "\thelp    print this help",
 		    ""
@@ -56,7 +56,7 @@ fun ensureRemoved dir = if not (exist dir) then () else
 			    Posix.FileSys.unlink dir
 			end
 
-fun load' name uri =
+fun install' name uri =
   let
       val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
 
@@ -69,8 +69,8 @@ fun load' name uri =
       Posix.FileSys.symlink {old = dir, new = target}
   end
 
-fun load (name :: uri :: nil) = load' name uri
-  | load _ = raise Fatal "load: need just 2 arguments"
+fun install (name :: uri :: nil) = install' name uri
+  | install _ = raise Fatal "install: need just 2 arguments"
 
 fun update (name :: nil) =
   let
@@ -89,7 +89,7 @@ fun main args =
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
 	| getCmd ("update" ::_) = update
-	| getCmd ("load" :: _) = load
+	| getCmd ("install" :: _) = install
 	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
       val cmd = getCmd args handle NoArgs => raise Fail
