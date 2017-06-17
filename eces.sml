@@ -15,7 +15,8 @@ fun usage _ = app println
 		    "",
 		    "commands:",
 		    "",
-		    "\tinstall fetch repository of .emacs.d and place it in home directory",
+		    "\tinstall fetch repository of .emacs.d",
+		    "\tswitch  switch .emacs.d",
 		    "\tupdate  update .emacs.d",
 		    "\thelp    print this help",
 		    ""
@@ -59,14 +60,11 @@ fun ensureRemoved dir = if not (exist dir) then () else
 fun install' name uri =
   let
       val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
-
-      val () = if not (isInstalled dir) then fetch name uri else ()
-
-      val target = OS.Path.concat (homeDir, ".emacs.d") handle OS.Path.Path => raise Fatal ("fatal: concat " ^ homeDir ^ " " ^ ".emacs.d")
-
-      val () = ensureRemoved target
   in
-      Posix.FileSys.symlink {old = dir, new = target}
+      if not (isInstalled dir) then
+	  fetch name uri
+      else
+	  ()
   end
 
 fun install (name :: uri :: nil) = install' name uri
@@ -84,12 +82,25 @@ fun update (name :: nil) =
   end
   | update _ = raise Fatal "need just 1 argument"
 
+fun switch (name :: nil) =
+  let
+      val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
+									 
+      val target = OS.Path.concat (homeDir, ".emacs.d") handle OS.Path.Path => raise Fatal ("fatal: concat " ^ homeDir ^ " " ^ ".emacs.d")
+
+      val () = ensureRemoved target
+  in 
+      Posix.FileSys.symlink {old = dir, new = target}
+  end
+  | switch _ = raise Fatal "need just 1 argument"
+
 fun main args =
   let
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
 	| getCmd ("update" ::_) = update
 	| getCmd ("install" :: _) = install
+	| getCmd ("switch" :: _) = switch
 	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
       val cmd = getCmd args handle NoArgs => raise Fail
