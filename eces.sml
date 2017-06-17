@@ -16,6 +16,7 @@ fun usage _ = app println
 		    "commands:",
 		    "",
 		    "\tload    fetch repository of .emacs.d and place it in home directory",
+		    "\tupdate  update .emacs.d",
 		    "\thelp    print this help",
 		    ""
 		  ]
@@ -71,10 +72,23 @@ fun load' name uri =
 fun load (name :: uri :: nil) = load' name uri
   | load _ = raise Fatal "load: need just 2 arguments"
 
+fun update (name :: nil) =
+  let
+      val dir = (OS.Path.concat (root, name))
+      val existence = exist dir handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
+  in
+      if existence then
+	  exec "git" ["-C", dir, "pull"]
+      else
+	  raise Fatal ("no directory: " ^ dir)
+  end
+  | update _ = raise Fatal "need just 1 argument"
+
 fun main args =
   let
       fun getCmd nil = (usage (); raise NoArgs)
 	| getCmd ("help" :: _) = usage
+	| getCmd ("update" ::_) = update
 	| getCmd ("load" :: _) = load
 	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
