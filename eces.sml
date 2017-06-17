@@ -28,14 +28,18 @@ fun usage _ = app println
 		    ""
 		  ]
 
-val homeDir = valOf $ Posix.ProcEnv.getenv "HOME" handle Option.Option => raise Fatal "could not get home directory"
+val homeDir = valOf $ Posix.ProcEnv.getenv "HOME"
+	      handle Option.Option => raise Fatal "could not get home directory"
 
-val root = OS.Path.concat (homeDir, ".eces") handle OS.Path.Path => raise Fatal ("concat " ^ homeDir ^ " " ^ ".eces")
+val root = OS.Path.concat (homeDir, ".eces")
+	   handle OS.Path.Path => raise Fatal ("concat " ^ homeDir ^ " " ^ ".eces")
 
 fun exec cmd args =
-  case (Posix.Process.fork () handle e as OS.SysErr (_, _) => raise Fatal ("exec " ^ cmd ^ " " ^ (foldl (fn (x, acc) => acc ^ x ^ " ") "" args) ^ exnMessage e)) of
-      NONE => ignore $ Posix.Process.execp (cmd, cmd::args)
-   |  SOME pid => ignore $ Posix.Process.waitpid (Posix.Process.W_CHILD pid, nil)
+  (case Posix.Process.fork () of
+       NONE => ignore $ Posix.Process.execp (cmd, cmd::args)
+     | SOME pid => ignore $ Posix.Process.waitpid (Posix.Process.W_CHILD pid, nil)
+  )
+  handle e => raise Fatal ("exec " ^ cmd ^ " " ^ (foldl (fn (x, acc) => acc ^ x ^ " ") "" args) ^ exnMessage e)
 
 fun fetch name uri =
   let
@@ -43,7 +47,7 @@ fun fetch name uri =
 		   handle OS.Path.Path => raise Fatal ("concat " ^ root ^ " " ^ name)
   in
       ignore $ exec "git" ["clone", uri, target]
-      handle e as OS.SysErr (msg, err) => raise Fatal ("fetch " ^ uri ^ " " ^ target ^ ": " ^ (exnMessage e))
+      handle e => raise Fatal ("fetch " ^ uri ^ " " ^ target ^ ": " ^ (exnMessage e))
   end
 
 fun exist file = Posix.FileSys.access (file, []);
@@ -52,7 +56,8 @@ fun isInstalled dir =
   if not $ exist dir then
       false
   else
-      OS.FileSys.isDir dir handle e as OS.SysErr (msg, err) => raise Fatal ("checking installed (" ^ dir ^ "): " ^ (exnMessage e))
+      OS.FileSys.isDir dir
+      handle e => raise Fatal ("checking installed (" ^ dir ^ "): " ^ (exnMessage e))
 
 fun ensureRemoved dir = if not $ exist dir then () else
 			let
@@ -65,7 +70,8 @@ fun ensureRemoved dir = if not $ exist dir then () else
 
 fun install' name uri =
   let
-      val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
+      val dir = OS.Path.concat (root, name)
+		handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
   in
       if not $ isInstalled dir then
 	  fetch name uri
@@ -79,7 +85,8 @@ fun install (name :: uri :: nil) = install' name uri
 fun update (name :: nil) =
   let
       val dir = OS.Path.concat (root, name)
-      val existDir = exist dir handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
+      val existDir = exist dir
+		     handle OS.Path.Path => raise Fatal ("error: concat " ^ root ^ " " ^ name)
   in
       if existDir then
 	  exec "git" ["-C", dir, "pull"]
@@ -90,9 +97,11 @@ fun update (name :: nil) =
 
 fun switch (name :: nil) =
   let
-      val dir = OS.Path.concat (root, name) handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
+      val dir = OS.Path.concat (root, name)
+		handle OS.Path.Path => raise Fatal ("fatal: concat " ^ root ^ " " ^ name)
 
-      val target = OS.Path.concat (homeDir, ".emacs.d") handle OS.Path.Path => raise Fatal ("fatal: concat " ^ homeDir ^ " " ^ ".emacs.d")
+      val target = OS.Path.concat (homeDir, ".emacs.d")
+		   handle OS.Path.Path => raise Fatal ("fatal: concat " ^ homeDir ^ " " ^ ".emacs.d")
 
       val () = ensureRemoved target
   in
@@ -114,7 +123,7 @@ fun listFiles dir =
       OS.FileSys.closeDir stream;
       list
   end
-  handle e as OS.SysErr (_, _) => []
+  handle e => []
 
 fun list nil = app println o rev o listFiles $ root
   | list _ = raise Fatal "no arguments needed"
@@ -129,7 +138,8 @@ fun main args =
 	| getCmd ("update" ::_) = update
 	| getCmd (name :: _) = raise Fatal ("unknown command: " ^ name)
 
-      val cmd = getCmd args handle NoArgs => raise Fail
+      val cmd = getCmd args
+		handle NoArgs => raise Fail
   in
       cmd $ tl args;
       OS.Process.success
